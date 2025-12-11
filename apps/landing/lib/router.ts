@@ -60,8 +60,7 @@ const getUsers = os
       throw new Error("Unauthorized");
     }
 
-    const isAdmin =
-      session.user.role === "admin" ;
+    const isAdmin = session.user.role === "admin";
     if (!isAdmin) {
       throw new Error("Forbidden: Admin access required");
     }
@@ -78,7 +77,7 @@ const getUsers = os
 
     return {
       users: users.map((user) => ({
-        id: user.id,
+        id: user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role || "user",

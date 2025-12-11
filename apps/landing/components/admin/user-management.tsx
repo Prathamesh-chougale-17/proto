@@ -23,18 +23,6 @@ import { Badge } from "@/components/ui/badge";
 import { Spinner } from "@/components/ui/spinner";
 import { UserActions } from "./user-actions";
 import { Users, RefreshCw } from "lucide-react";
-import { toast } from "sonner";
-
-interface User {
-  id: string;
-  name: string | null;
-  email: string;
-  role: string;
-  banned: boolean;
-  banReason?: string | null;
-  banExpires?: Date | null;
-  createdAt?: Date | null;
-}
 
 export function UserManagement() {
   const queryClient = useQueryClient();
@@ -87,7 +75,8 @@ export function UserManagement() {
           </div>
         ) : isError ? (
           <div className="text-center py-12 text-destructive">
-            Error: {error instanceof Error ? error.message : "Failed to fetch users"}
+            Error:{" "}
+            {error instanceof Error ? error.message : "Failed to fetch users"}
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
@@ -116,9 +105,7 @@ export function UserManagement() {
                     <TableCell>
                       <Badge
                         variant={
-                          user.role === "admin"
-                            ? "default"
-                            : "secondary"
+                          user.role === "admin" ? "default" : "secondary"
                         }
                       >
                         {user.role || "user"}
