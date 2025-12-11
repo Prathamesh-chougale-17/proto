@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   }
 
   const isAdmin =
-    session.user.role === "admin" || session.user.role === "super-admin";
+    session.user.role === "admin" ;
 
   return (
     <div className="min-h-screen bg-linear-to-br from-zinc-900 via-zinc-800 to-zinc-900">

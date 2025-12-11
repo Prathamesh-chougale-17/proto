@@ -7,7 +7,7 @@ export const env = createEnv({
     NODE_ENV: z.enum(["development", "production"]).default("production"),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url().default("http://localhost:3000"),
-    MONGODB_DB_NAME: z.string().min(1).max(100).default("game-aggregator"),
+    MONGODB_DB_NAME: z.string().min(1).max(100).default("proto"),
     GOOGLE_CLIENT_ID: z.string().min(1),
     GOOGLE_CLIENT_SECRET: z.string().min(1),
     // SMTP Configuration for Nodemailer
@@ -17,7 +17,7 @@ export const env = createEnv({
     SMTP_USER: z.string().min(1),
     SMTP_PASSWORD: z.string().min(1),
     SMTP_FROM_EMAIL: z.string().email(),
-    SMTP_FROM_NAME: z.string().default("Game Aggregator"),
+    SMTP_FROM_NAME: z.string().default("proto"),
   },
   client: {
     // NEXT_PUBLIC_ variables are exposed to the client

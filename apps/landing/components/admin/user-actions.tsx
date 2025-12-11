@@ -188,7 +188,6 @@ export function UserActions({ user, onUpdate }: UserActionsProps) {
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="super-admin">Super Admin</SelectItem>
                 </SelectContent>
               </Select>
             </div>

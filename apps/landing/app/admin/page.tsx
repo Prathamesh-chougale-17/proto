@@ -13,7 +13,7 @@ export default async function AdminPage() {
     redirect("/sign-in");
   }
 
-  const isAdmin = session.user.role === "admin" || session.user.role === "super-admin";
+  const isAdmin = session.user.role === "admin" ;
 
   if (!isAdmin) {
     redirect("/dashboard");

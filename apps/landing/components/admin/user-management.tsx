@@ -121,7 +121,7 @@ export function UserManagement() {
                     <TableCell>
                       <Badge
                         variant={
-                          user.role === "admin" || user.role === "super-admin"
+                          user.role === "admin"
                             ? "default"
                             : "secondary"
                         }

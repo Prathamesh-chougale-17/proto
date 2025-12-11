@@ -61,7 +61,7 @@ const getUsers = os
     }
 
     const isAdmin =
-      session.user.role === "admin" || session.user.role === "super-admin";
+      session.user.role === "admin" ;
     if (!isAdmin) {
       throw new Error("Forbidden: Admin access required");
     }

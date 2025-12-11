@@ -24,7 +24,7 @@ export const auth = betterAuth({
   plugins: [
     admin({
       defaultRole: "user",
-      adminRoles: ["admin", "super-admin"],
+      adminRoles: ["admin"],
       impersonationSessionDuration: 3600, // 1 hour
       defaultBanReason: "Violated terms of service",
       bannedUserMessage:
@@ -43,19 +43,19 @@ export const auth = betterAuth({
 
         switch (type) {
           case "sign-in":
-            subject = "🔐 Sign In to Game Aggregator";
+            subject = "🔐 Sign In to Proto";
             html = emailTemplates.signInOTP(otp, 5);
             break;
           case "email-verification":
-            subject = "✉️ Verify Your Email - Game Aggregator";
+            subject = "✉️ Verify Your Email - Proto";
             html = emailTemplates.emailVerification(otp, 5);
             break;
           case "forget-password":
-            subject = "🔑 Reset Your Password - Game Aggregator";
+            subject = "🔑 Reset Your Password - Proto";
             html = emailTemplates.passwordReset(otp, 5);
             break;
           default:
-            subject = "Verification Code - Game Aggregator";
+            subject = "Verification Code - Proto";
             html = emailTemplates.signInOTP(otp, 5);
         }
 
