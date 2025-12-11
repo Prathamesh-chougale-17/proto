@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS } from "@/lib/queries";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -55,82 +57,92 @@ interface UserActionsProps {
 }
 
 export function UserActions({ user, onUpdate }: UserActionsProps) {
+  const queryClient = useQueryClient();
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [banDialogOpen, setBanDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedRole, setSelectedRole] = useState(user.role || "user");
   const [banReason, setBanReason] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const handleRoleChange = async () => {
-    setLoading(true);
-    try {
-      // Type assertion needed because Better Auth types don't include custom adminRoles
+  const handleMutationSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
+    onUpdate();
+  };
+
+  const roleChangeMutation = useMutation({
+    mutationFn: async (role: string) => {
       await authClient.admin.setRole({
         userId: user.id,
-        role: selectedRole as "user" | "admin",
+        role: role as "user" | "admin",
       });
+    },
+    onSuccess: () => {
       toast.success(`Role updated to ${selectedRole}`);
       setRoleDialogOpen(false);
-      onUpdate();
-    } catch (error) {
+      handleMutationSuccess();
+    },
+    onError: (error) => {
       toast.error("Failed to update role");
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  const handleBanUser = async () => {
-    setLoading(true);
-    try {
+  const banUserMutation = useMutation({
+    mutationFn: async (reason: string) => {
       await authClient.admin.banUser({
         userId: user.id,
-        banReason: banReason || "Violated terms of service",
+        banReason: reason || "Violated terms of service",
       });
+    },
+    onSuccess: () => {
       toast.success(`User ${user.name || user.email} has been banned`);
       setBanDialogOpen(false);
-      onUpdate();
-    } catch (error) {
+      handleMutationSuccess();
+    },
+    onError: (error) => {
       toast.error("Failed to ban user");
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  const handleUnbanUser = async () => {
-    setLoading(true);
-    try {
+  const unbanUserMutation = useMutation({
+    mutationFn: async () => {
       await authClient.admin.unbanUser({
         userId: user.id,
       });
+    },
+    onSuccess: () => {
       toast.success(`User ${user.name || user.email} has been unbanned`);
-      onUpdate();
-    } catch (error) {
+      handleMutationSuccess();
+    },
+    onError: (error) => {
       toast.error("Failed to unban user");
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
 
-  const handleDeleteUser = async () => {
-    setLoading(true);
-    try {
+  const deleteUserMutation = useMutation({
+    mutationFn: async () => {
       await authClient.admin.removeUser({
         userId: user.id,
       });
+    },
+    onSuccess: () => {
       toast.success(`User ${user.name || user.email} has been deleted`);
       setDeleteDialogOpen(false);
-      onUpdate();
-    } catch (error) {
+      handleMutationSuccess();
+    },
+    onError: (error) => {
       toast.error("Failed to delete user");
       console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    },
+  });
+
+  const isLoading =
+    roleChangeMutation.isPending ||
+    banUserMutation.isPending ||
+    unbanUserMutation.isPending ||
+    deleteUserMutation.isPending;
 
   return (
     <>
@@ -148,7 +160,10 @@ export function UserActions({ user, onUpdate }: UserActionsProps) {
             Change Role
           </DropdownMenuItem>
           {user.banned ? (
-            <DropdownMenuItem onClick={handleUnbanUser} disabled={loading}>
+            <DropdownMenuItem
+              onClick={() => unbanUserMutation.mutate()}
+              disabled={isLoading}
+            >
               <Unlock className="mr-2 h-4 w-4" />
               Unban User
             </DropdownMenuItem>
@@ -196,12 +211,15 @@ export function UserActions({ user, onUpdate }: UserActionsProps) {
             <Button
               variant="outline"
               onClick={() => setRoleDialogOpen(false)}
-              disabled={loading}
+              disabled={isLoading}
             >
               Cancel
             </Button>
-            <Button onClick={handleRoleChange} disabled={loading}>
-              {loading ? "Updating..." : "Update Role"}
+            <Button
+              onClick={() => roleChangeMutation.mutate(selectedRole)}
+              disabled={isLoading}
+            >
+              {roleChangeMutation.isPending ? "Updating..." : "Update Role"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -231,16 +249,16 @@ export function UserActions({ user, onUpdate }: UserActionsProps) {
             <Button
               variant="outline"
               onClick={() => setBanDialogOpen(false)}
-              disabled={loading}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
-              onClick={handleBanUser}
-              disabled={loading}
+              onClick={() => banUserMutation.mutate(banReason)}
+              disabled={isLoading}
             >
-              {loading ? "Banning..." : "Ban User"}
+              {banUserMutation.isPending ? "Banning..." : "Ban User"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -260,16 +278,16 @@ export function UserActions({ user, onUpdate }: UserActionsProps) {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
-              disabled={loading}
+              disabled={isLoading}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
-              onClick={handleDeleteUser}
-              disabled={loading}
+              onClick={() => deleteUserMutation.mutate()}
+              disabled={isLoading}
             >
-              {loading ? "Deleting..." : "Delete User"}
+              {deleteUserMutation.isPending ? "Deleting..." : "Delete User"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -277,3 +295,4 @@ export function UserActions({ user, onUpdate }: UserActionsProps) {
     </>
   );
 }
+

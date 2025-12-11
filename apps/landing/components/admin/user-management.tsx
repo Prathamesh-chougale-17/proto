@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { client } from "@/lib/orpc";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { QUERY_KEYS, DEFAULT_QUERY_OPTIONS } from "@/lib/queries";
 import {
   Card,
   CardContent,
@@ -36,31 +37,21 @@ interface User {
 }
 
 export function UserManagement() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      // Fetch users via oRPC
+  const { data, isPending, isError, error, refetch } = useQuery({
+    queryKey: QUERY_KEYS.admin.users,
+    queryFn: async () => {
       const data = await client.admin.getUsers();
-      setUsers(data.users);
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-      toast.error(
-        error instanceof Error ? error.message : "Failed to fetch users"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+      return data.users;
+    },
+    staleTime: DEFAULT_QUERY_OPTIONS.admin.users.staleTime,
+  });
 
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const users = data || [];
 
   const handleUserUpdate = () => {
-    fetchUsers();
+    queryClient.invalidateQueries({ queryKey: QUERY_KEYS.admin.users });
   };
 
   return (
@@ -77,22 +68,26 @@ export function UserManagement() {
             </div>
           </div>
           <Button
-            onClick={fetchUsers}
+            onClick={() => refetch()}
             variant="outline"
             size="sm"
-            disabled={loading}
+            disabled={isPending}
           >
             <RefreshCw
-              className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`}
+              className={`mr-2 h-4 w-4 ${isPending ? "animate-spin" : ""}`}
             />
             Refresh
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        {loading ? (
+        {isPending ? (
           <div className="flex items-center justify-center py-12">
             <Spinner className="h-8 w-8" />
+          </div>
+        ) : isError ? (
+          <div className="text-center py-12 text-destructive">
+            Error: {error instanceof Error ? error.message : "Failed to fetch users"}
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">

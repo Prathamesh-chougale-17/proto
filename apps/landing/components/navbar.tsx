@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useSession, authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { LogIn, LogOut, LayoutDashboard, Shield } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,16 +21,23 @@ export function Navbar() {
   const { data: session } = useSession();
   const router = useRouter();
 
-  const handleSignOut = async () => {
-    try {
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
       await authClient.signOut();
+    },
+    onSuccess: () => {
       toast.success("Signed out successfully");
       router.push("/");
       router.refresh();
-    } catch (error) {
+    },
+    onError: (error) => {
       toast.error("Failed to sign out");
       console.error(error);
-    }
+    },
+  });
+
+  const handleSignOut = () => {
+    signOutMutation.mutate();
   };
 
   const getInitials = (name: string | null | undefined) => {
@@ -98,9 +106,14 @@ export function Navbar() {
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut}>
+                <DropdownMenuItem
+                  onClick={handleSignOut}
+                  disabled={signOutMutation.isPending}
+                >
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>
+                    {signOutMutation.isPending ? "Signing out..." : "Log out"}
+                  </span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
